@@ -1,5 +1,5 @@
 import os
-os.system('pip install arabic_reshaper bidi networkx matplotlib pillow speechrecognition streamlit json PIL')
+os.system('pip install arabic_reshaper bidi networkx matplotlib pillow speechrecognition streamlit json pillow')
 import streamlit as st
 import json
 import arabic_reshaper
