@@ -1,0 +1,7 @@
+arabic_reshaper
+bidi
+networkx
+matplotlib
+pillow
+speechrecognition
+streamlit
