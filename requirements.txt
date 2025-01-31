@@ -1,9 +1,7 @@
-arabic_reshaper
-bidi
-networkx
-matplotlib
-pillow
-speechrecognition
-streamlit
-Pillow
-python-bidi 
+streamlit==1.32.0
+arabic-reshaper==2.1.4
+python-bidi==0.4.2
+networkx==3.2.1
+matplotlib==3.8.0
+SpeechRecognition==3.10.0
+Pillow==10.1.0
