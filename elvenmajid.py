@@ -8,15 +8,20 @@ from PIL import Image
 import matplotlib.font_manager as fm
 import re
 from collections import Counter
-from pocketsphinx import LiveSpeech
+import sounddevice as sd
+import numpy as np
+from scipy.io.wavfile import write
+import speech_recognition as sr
 
 # تحميل خط يدعم العربية
 arabic_font = fm.FontProperties(fname="arial.ttf")
+
 
 def reshape_arabic_text(text):
     """إعادة تشكيل النص العربي ليتوافق مع الرسم"""
     reshaped_text = arabic_reshaper.reshape(text)
     return get_display(reshaped_text)
+
 
 def load_knowledge_base():
     """تحميل قاعدة المعرفة من ملف JSON"""
@@ -29,12 +34,14 @@ def load_knowledge_base():
         st.error("⚠️ ملف قاعدة المعرفة غير موجود!")
         return {}
 
+
 def preprocess_text(text):
     """تنظيف وتحليل النص المدخل"""
     text = re.sub(r'[^\w\s]', '', text)  # إزالة الرموز الخاصة
     text = re.sub(r'إ', "ا", text)  # تصحيح بعض الحروف
     text = re.sub(r'أ', "ا", text)
     return text.strip().split()
+
 
 def build_semantic_network(knowledge_base):
     """بناء شبكة دلالية للأمراض والأعراض"""
@@ -45,6 +52,7 @@ def build_semantic_network(knowledge_base):
             network.add_node(symptom, type="symptom")
             network.add_edge(disease, symptom, relation="has_symptom")
     return network
+
 
 def diagnose_disease(input_text, knowledge_base, semantic_network):
     """تشخيص المرض بناءً على الأعراض المدخلة"""
@@ -61,6 +69,7 @@ def diagnose_disease(input_text, knowledge_base, semantic_network):
         details = knowledge_base.get(best_match, {})
         return best_match, details
     return None, None
+
 
 def visualize_network(input_text, semantic_network):
     """رسم الشبكة الدلالية للأعراض المدخلة"""
@@ -85,19 +94,32 @@ def visualize_network(input_text, semantic_network):
     else:
         st.warning("⚠️ لم يتم العثور على شبكة دلالية للأعراض المدخلة.")
 
+
 def recognize_speech():
-    """التعرف على الصوت وتحويله إلى نص باستخدام pocketsphinx"""
+    """التعرف على الصوت وتحويله إلى نص باستخدام sounddevice"""
+    fs = 16000  # معدل العينة (16 kHz)
+    duration = 5  # مدة التسجيل بالثواني
     st.info("🎤 تحدث الآن...")
+
     try:
-        speech = LiveSpeech(lm=False, keyphrase='مرحبا', kws_threshold=1e-20)  # يمكن تعديل المعلمات حسب الحاجة
-        recognized_text = ""
-        for phrase in speech:
-            recognized_text = str(phrase)
-            break  # نكتفي بالعبارة الأولى
-        return recognized_text
+        # تسجيل الصوت
+        recording = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='float64')
+        sd.wait()  # انتظر حتى ينتهي التسجيل
+        st.success("✅ تم تسجيل الصوت بنجاح!")
+
+        # حفظ التسجيل كملف مؤقت
+        write("temp_recording.wav", fs, recording)
+
+        # تحويل الصوت إلى نص باستخدام Google Speech Recognition
+        recognizer = sr.Recognizer()
+        with sr.AudioFile("temp_recording.wav") as source:
+            audio = recognizer.record(source)
+            text = recognizer.recognize_google(audio, language="ar")
+            return text
     except Exception as e:
-        st.warning(f"⚠️ حدث خطأ أثناء التعرف على الصوت: {e}")
+        st.error(f"❌ حدث خطأ أثناء تسجيل الصوت: {e}")
         return ""
+
 
 def main():
     st.title("🔬 نظام تشخيص طبي ذكي")
@@ -117,7 +139,6 @@ def main():
     if st.button("تشخيص باستخدام الميكروفون"):
         input_text = recognize_speech()
         if input_text:
-            st.write(f"🎤 النص الذي تم التعرف عليه: {input_text}")
             disease, details = diagnose_disease(input_text, knowledge_base, semantic_network)
             if disease:
                 st.success(f"🦠 المرض المحتمل: {disease}")
@@ -159,6 +180,7 @@ def main():
             visualize_network(input_text, semantic_network)
         else:
             st.warning("الرجاء إدخال الأعراض أولاً.")
+
 
 if __name__ == "__main__":
     main()
