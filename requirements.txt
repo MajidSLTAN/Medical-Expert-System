@@ -7,4 +7,4 @@ matomo-api==1.0b5
 SpeechRecognition==3.10.0
 Pillow==10.1.0
 regex==2024.11.6
-pyaudio
+
