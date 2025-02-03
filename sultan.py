@@ -4,12 +4,13 @@ import arabic_reshaper
 from bidi.algorithm import get_display
 import networkx as nx
 import matplotlib.pyplot as plt
-# import speech_recognition as sr
+import speech_recognition as sr
 from PIL import Image
 import matplotlib.font_manager as fm
 import re
 from collections import Counter
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 # تحميل خط يدعم العربية
 arabic_font = fm.FontProperties(fname="arial.ttf")
 
@@ -35,8 +36,8 @@ def load_knowledge_base():
 def preprocess_text(text):
     """تنظيف وتحليل النص المدخل"""
     text = re.sub(r'[^\w\s]', '', text)  # إزالة الرموز الخاصة
-    text = re.sub(r'إ', "ا", text)
-    text = re.sub(r'أ', "ا", text)
+    text = re.sub(r'[أإآ]', "ا", text)  # تطبيع الحروف
+    text = re.sub(r'ة', "ه", text)  # تطبيع الحروف
     return text.strip().split()
 
 
@@ -51,6 +52,11 @@ def build_semantic_network(knowledge_base):
     return network
 
 
+def calculate_similarity(input_symptoms, disease_symptoms):
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform([input_symptoms, disease_symptoms])
+    similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])
+    return similarity[0][0]
 def diagnose_disease(input_text, knowledge_base, semantic_network):
     """تشخيص المرض بناءً على الأعراض المدخلة مع تحسين دقة المطابقة"""
     input_symptoms = preprocess_text(input_text)
@@ -59,15 +65,23 @@ def diagnose_disease(input_text, knowledge_base, semantic_network):
     for disease in semantic_network.nodes:
         if semantic_network.nodes[disease].get("type") == "disease":
             disease_symptoms = [symptom for symptom in semantic_network.successors(disease)]
+
+            # حساب التشابه الدلالي
+            input_symptoms_str = " ".join(input_symptoms)
+            disease_symptoms_str = " ".join(disease_symptoms)
+            similarity = calculate_similarity(input_symptoms_str, disease_symptoms_str)
+
+            # حساب عدد الأعراض المتطابقة
             matched_symptoms = sum(1 for symptom in input_symptoms if symptom in disease_symptoms)
             total_symptoms = len(disease_symptoms)
 
             if matched_symptoms > 0:
                 match_ratio = matched_symptoms / total_symptoms
-                disease_scores.append((disease, match_ratio, matched_symptoms))
+                disease_scores.append((disease, match_ratio, matched_symptoms, similarity))
 
     if disease_scores:
-        disease_scores.sort(key=lambda x: (-x[1], -x[2]))  # ترتيب حسب أعلى نسبة تطابق ثم حسب عدد الأعراض المتطابقة
+        # ترتيب الأمراض حسب التشابه الدلالي ثم نسبة المطابقة
+        disease_scores.sort(key=lambda x: (-x[3], -x[1], -x[2]))
         best_match = disease_scores[0][0]
         details = knowledge_base.get(best_match, {})
         return best_match, details, disease_scores
@@ -95,23 +109,6 @@ def visualize_network(input_text, semantic_network):
             font_family="Arial")
     st.pyplot(plt)
 
-
-# def recognize_speech():
-#     """التعرف على الصوت وتحويله إلى نص"""
-#     recognizer = sr.Recognizer()
-#     with sr.Microphone() as source:
-#         st.info("تحدث الآن...")
-#         try:
-#             audio = recognizer.listen(source, timeout=5)
-#             text = recognizer.recognize_google(audio, language="ar")
-#             return text
-#         except sr.UnknownValueError:
-#             st.warning("لم يتم التعرف على أي صوت.")
-#         except sr.RequestError:
-#             st.error("حدث خطأ في الاتصال بخدمة التعرف على الصوت.")
-#     return ""
-
-
 def main():
     st.title("🔬 نظام تشخيص طبي ذكي")
 
@@ -126,17 +123,6 @@ def main():
 
     # إدخال نص الأعراض يدويًا
     input_text = st.text_input("أدخل الأعراض:")
-
-    # if st.button("تشخيص باستخدام الميكروفون"):
-    #     input_text = recognize_speech()
-    #     if input_text:
-    #         disease, details = diagnose_disease(input_text, knowledge_base, semantic_network)
-    #         if disease:
-    #             st.success(f"🦠 المرض المحتمل: {disease}")
-    #             st.write(f"📖 الوصف: {details.get('الوصف', '')}")
-    #             st.write(f"💊 العلاج: {', '.join(details.get('العلاج', []))}")
-    #         else:
-    #             st.warning("⚠️ لم يتم العثور على مرض مطابق.")
 
     # زر التشخيص
     if st.button("تشخيص"):
