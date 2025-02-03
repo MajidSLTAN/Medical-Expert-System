@@ -10,3 +10,4 @@ regex==2024.11.6
 pocketsphinx==5.0.4
 sounddevice
 scikit-learn
+gdown
