@@ -11,6 +11,7 @@ import re
 from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import gdown
 # تحميل خط يدعم العربية
 arabic_font = fm.FontProperties(fname="arial.ttf")
 
@@ -21,15 +22,28 @@ def reshape_arabic_text(text):
     return get_display(reshaped_text)
 
 
+@st.cache_data
 def load_knowledge_base():
     """تحميل قاعدة المعرفة من ملف JSON"""
-    file_name = "translated_diseases_v2.json"
+    file_id = "1_Yi0K6hVGDJjZRhoxBJxrwyKLxbRPlCc"  # Replace with your file ID
+    url = f"https://drive.google.com/uc?id={file_id}"
+    output = "translated_diseases_v2.json"  # Output file name
+    # gdown.download(url, output, quiet=False, fuzzy=True)  # Use fuzzy to handle shareable links
+
     try:
-        with open(file_name, "r", encoding="utf-8") as file:
-            data = json.load(file)
+        with open(output, "r", encoding="utf-8") as file:
+            content = file.read()
+
+            if not content:
+                st.error("⚠️ ملف قاعدة المعرفة فارغ!")
+                return {}
+            data = json.loads(content)
             return data.get("symptoms", {})
     except FileNotFoundError:
-        st.error("ملف قاعدة المعرفة غير موجود!")
+        st.error("⚠️ ملف قاعدة المعرفة غير موجود!")
+        return {}
+    except json.JSONDecodeError:
+        st.error("⚠️ ملف قاعدة المعرفة غير صالح!")
         return {}
 
 
