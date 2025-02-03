@@ -4,7 +4,7 @@ import arabic_reshaper
 from bidi.algorithm import get_display
 import networkx as nx
 import matplotlib.pyplot as plt
-import speech_recognition as sr
+# import speech_recognition as sr
 from PIL import Image
 import matplotlib.font_manager as fm
 import re
