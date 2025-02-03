@@ -96,20 +96,20 @@ def visualize_network(input_text, semantic_network):
     st.pyplot(plt)
 
 
-def recognize_speech():
-    """التعرف على الصوت وتحويله إلى نص"""
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        st.info("تحدث الآن...")
-        try:
-            audio = recognizer.listen(source, timeout=5)
-            text = recognizer.recognize_google(audio, language="ar")
-            return text
-        except sr.UnknownValueError:
-            st.warning("لم يتم التعرف على أي صوت.")
-        except sr.RequestError:
-            st.error("حدث خطأ في الاتصال بخدمة التعرف على الصوت.")
-    return ""
+# def recognize_speech():
+#     """التعرف على الصوت وتحويله إلى نص"""
+#     recognizer = sr.Recognizer()
+#     with sr.Microphone() as source:
+#         st.info("تحدث الآن...")
+#         try:
+#             audio = recognizer.listen(source, timeout=5)
+#             text = recognizer.recognize_google(audio, language="ar")
+#             return text
+#         except sr.UnknownValueError:
+#             st.warning("لم يتم التعرف على أي صوت.")
+#         except sr.RequestError:
+#             st.error("حدث خطأ في الاتصال بخدمة التعرف على الصوت.")
+#     return ""
 
 
 def main():
