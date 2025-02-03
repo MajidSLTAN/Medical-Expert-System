@@ -127,16 +127,16 @@ def main():
     # إدخال نص الأعراض يدويًا
     input_text = st.text_input("أدخل الأعراض:")
 
-    if st.button("تشخيص باستخدام الميكروفون"):
-        input_text = recognize_speech()
-        if input_text:
-            disease, details = diagnose_disease(input_text, knowledge_base, semantic_network)
-            if disease:
-                st.success(f"🦠 المرض المحتمل: {disease}")
-                st.write(f"📖 الوصف: {details.get('الوصف', '')}")
-                st.write(f"💊 العلاج: {', '.join(details.get('العلاج', []))}")
-            else:
-                st.warning("⚠️ لم يتم العثور على مرض مطابق.")
+    # if st.button("تشخيص باستخدام الميكروفون"):
+    #     input_text = recognize_speech()
+    #     if input_text:
+    #         disease, details = diagnose_disease(input_text, knowledge_base, semantic_network)
+    #         if disease:
+    #             st.success(f"🦠 المرض المحتمل: {disease}")
+    #             st.write(f"📖 الوصف: {details.get('الوصف', '')}")
+    #             st.write(f"💊 العلاج: {', '.join(details.get('العلاج', []))}")
+    #         else:
+    #             st.warning("⚠️ لم يتم العثور على مرض مطابق.")
 
     # زر التشخيص
     if st.button("تشخيص"):
