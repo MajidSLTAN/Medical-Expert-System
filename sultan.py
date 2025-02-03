@@ -28,7 +28,7 @@ def load_knowledge_base():
     file_id = "1_Yi0K6hVGDJjZRhoxBJxrwyKLxbRPlCc"  # Replace with your file ID
     url = f"https://drive.google.com/uc?id={file_id}"
     output = "translated_diseases_v2.json"  # Output file name
-    # gdown.download(url, output, quiet=False, fuzzy=True)  # Use fuzzy to handle shareable links
+    gdown.download(url, output, quiet=False, fuzzy=True)  # Use fuzzy to handle shareable links
 
     try:
         with open(output, "r", encoding="utf-8") as file:
